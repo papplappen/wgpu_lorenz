@@ -4,8 +4,7 @@ use wgpu::{
 };
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, Event, VirtualKeyCode, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
     window::{Window, WindowBuilder},
 };
 
@@ -46,7 +45,6 @@ impl Environment {
             })
             .await
             .unwrap();
-
         //* CREATE DEVICE & QUEUE
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default(), None)
@@ -54,7 +52,6 @@ impl Environment {
             .unwrap();
 
         //* CONFIGURE SURFACE
-        let window_size = window.inner_size();
         let surface_caps = surface.get_capabilities(&adapter);
         let surface_format = surface_caps
             .formats
@@ -65,14 +62,14 @@ impl Environment {
         let config = SurfaceConfiguration {
             usage: TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
-            width: window_size.width,
-            height: window_size.height,
+            width: window.inner_size().width,
+            height: window.inner_size().height,
             present_mode: wgpu::PresentMode::AutoNoVsync,
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
         };
-        surface.configure(&device, &config);
 
+        surface.configure(&device, &config);
         Self {
             surface,
             device,
@@ -80,34 +77,5 @@ impl Environment {
             config,
             window,
         }
-    }
-    pub fn run(self, event_loop: EventLoop<()>) {
-        event_loop.run(move |event, _, control_flow| {
-            match event {
-                Event::WindowEvent {
-                    ref event,
-                    window_id,
-                } if window_id == self.window.id() => match event {
-                    WindowEvent::CloseRequested
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            winit::event::KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            },
-                        ..
-                    } => *control_flow = ControlFlow::Exit,
-
-                    _ => {
-                        dbg!(event);
-                    }
-                },
-                Event::MainEventsCleared => {
-                    // Update stuff
-                }
-                _ => {}
-            }
-        })
     }
 }
