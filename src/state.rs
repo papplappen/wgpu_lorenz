@@ -1,6 +1,6 @@
 use winit::event_loop::EventLoop;
 
-use crate::{camera::Camera, env::Environment, lorenz::LorenzState, render::RenderState};
+use crate::{camera::Camera, env::Environment, input, lorenz::LorenzState, render::RenderState};
 use winit::{
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
     event_loop::ControlFlow,
@@ -30,8 +30,8 @@ impl State {
                         ..
                     } => *control_flow = ControlFlow::Exit,
 
-                    we => {
-                        self.camera.controller.handle_key_input(we);
+                    event => {
+                        input::input(&mut self, event);
                         // dbg!(event);
                     }
                 },

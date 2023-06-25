@@ -32,12 +32,17 @@ impl RenderState {
         env: &Environment,
         camera_bind_group_layout: BindGroupLayout,
     ) -> Self {
+        // * LOAD SHADER
         let shader = env.device.create_shader_module(include_wgsl!("draw.wgsl"));
 
+        // * CREATE DEPTH TEXTURE
         let depth_texture = Self::create_depth_texture(&env.device, &env.config);
 
+        // * CREATE VERTEX & INSTANCE BUFFERS
         let vertex_buffer = create_vertex_buffer(&env.device);
         let instances = InstancesVec::from((lorenz_state, &env.device));
+
+        // * CREATES RENDER PIPELINE
         let render_pipeline = Self::create_render_pipeline(
             &env.device,
             &env.config,

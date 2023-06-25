@@ -17,7 +17,7 @@ impl Default for LorenzConfig {
 }
 
 pub const NUMBER_LORENZ_POINTS: usize = 100;
-
+pub const DEFAULT_DELTA_TIME: f64 = 0.1;
 impl LorenzConfig {
     fn delta(&self, state: DVec3) -> DVec3 {
         let DVec3 { x, y, z } = state;
@@ -36,6 +36,7 @@ impl LorenzConfig {
 pub struct LorenzState {
     pub lorenz_config: LorenzConfig,
     pub points: [DVec3; NUMBER_LORENZ_POINTS],
+    pub paused: bool,
 }
 impl LorenzState {
     pub fn new(lorenz_config: LorenzConfig) -> Self {
@@ -47,6 +48,7 @@ impl LorenzState {
         Self {
             lorenz_config,
             points,
+            paused: false,
         }
     }
     pub fn update(&mut self, dt: f64) {

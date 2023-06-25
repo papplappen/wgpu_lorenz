@@ -1,5 +1,6 @@
 pub(crate) mod camera;
 pub(crate) mod env;
+pub(crate) mod input;
 pub(crate) mod instance;
 pub(crate) mod lorenz;
 pub(crate) mod render;

@@ -14,6 +14,7 @@ pub struct Environment {
     pub queue: Queue,
     pub config: SurfaceConfiguration,
     pub window: Window,
+    pub cursor_grab: bool,
 }
 
 const WINDOW_SIZE: PhysicalSize<u32> = PhysicalSize {
@@ -23,20 +24,20 @@ const WINDOW_SIZE: PhysicalSize<u32> = PhysicalSize {
 
 impl Environment {
     pub async fn new(event_loop: &EventLoop<()>) -> Self {
-        //* CREATE CREATE WINDOW
+        // * CREATE CREATE WINDOW
         let window_builder = WindowBuilder::new().with_inner_size(WINDOW_SIZE);
         let window = window_builder.build(event_loop).unwrap();
 
-        //* CREATE INSTANCE
+        // * CREATE INSTANCE
         let instance = Instance::new(InstanceDescriptor {
             backends: Backends::VULKAN,
             ..Default::default()
         });
 
-        //* CREATE SURFACE (unconfigured)
+        // * CREATE SURFACE (unconfigured)
         let surface = unsafe { instance.create_surface(&window) }.unwrap();
 
-        //* CREATE ADAPTER
+        // * CREATE ADAPTER
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptionsBase {
                 power_preference: wgpu::PowerPreference::HighPerformance,
@@ -45,13 +46,13 @@ impl Environment {
             })
             .await
             .unwrap();
-        //* CREATE DEVICE & QUEUE
+        // * CREATE DEVICE & QUEUE
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default(), None)
             .await
             .unwrap();
 
-        //* CONFIGURE SURFACE
+        // * CONFIGURE SURFACE
         let surface_caps = surface.get_capabilities(&adapter);
         let surface_format = surface_caps
             .formats
@@ -68,14 +69,15 @@ impl Environment {
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
         };
-
         surface.configure(&device, &config);
+
         Self {
             surface,
             device,
             queue,
             config,
             window,
+            cursor_grab: false,
         }
     }
 }
