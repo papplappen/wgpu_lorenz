@@ -11,7 +11,7 @@ use crate::{
     env::Environment,
     instance::{InstancesVec, RawInstance},
     lorenz::{LorenzState, NUMBER_LORENZ_POINTS},
-    vertex::{create_vertex_buffer, Vertex, SQUARE},
+    vertex::{Vertex, SQUARE},
 };
 
 const BACKGROUND_COLOR: Color = Color {
@@ -21,10 +21,10 @@ const BACKGROUND_COLOR: Color = Color {
     a: 1.0,
 };
 pub struct RenderState {
-    vertex_buffer: Buffer,
-    instances: InstancesVec,
-    render_pipeline: RenderPipeline,
-    depth_texture: TextureView,
+    pub vertex_buffer: Buffer,
+    pub instances: InstancesVec,
+    pub render_pipeline: RenderPipeline,
+    pub depth_texture: TextureView,
 }
 impl RenderState {
     pub fn new(
@@ -39,7 +39,7 @@ impl RenderState {
         let depth_texture = Self::create_depth_texture(&env.device, &env.config);
 
         // * CREATE VERTEX & INSTANCE BUFFERS
-        let vertex_buffer = create_vertex_buffer(&env.device);
+        let vertex_buffer = Vertex::create_vertex_buffer(&env.device);
         let instances = InstancesVec::from((lorenz_state, &env.device));
 
         // * CREATES RENDER PIPELINE

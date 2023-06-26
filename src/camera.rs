@@ -8,8 +8,8 @@ use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, Win
 pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 1.0,
 ]);
-const SPEED: f32 = 100.;
-const SENS: f32 = 0.001;
+const SPEED: f32 = 1.;
+const SENS: f32 = 0.01;
 pub struct Camera {
     pub entity: CameraEntity,
     pub uniform: CameraUniform,
@@ -24,7 +24,7 @@ impl Camera {
         config: &SurfaceConfiguration,
     ) -> (Self, BindGroupLayout) {
         let entity = CameraEntity {
-            pos: Vec3::ZERO,
+            pos: Vec3::ONE * 10.,
             dir: Vec3::NEG_ONE.normalize(),
             up: Vec3::Y,
             aspect_ratio: config.width as f32 / config.height as f32,
@@ -80,12 +80,13 @@ impl Camera {
         self.uniform.update_view_proj(&self.entity);
     }
 }
+#[derive(Debug)]
 pub struct CameraEntity {
     pub pos: Vec3,
     pub dir: Vec3,
     pub up: Vec3,
     pub aspect_ratio: f32,
-    pub fov_y: f32, //DEGREES
+    pub fov_y: f32, // ! DEGREES
     pub z_near: f32,
     pub z_far: f32,
 }
@@ -197,7 +198,7 @@ impl CameraController {
 
         let pitch = Mat3::from_axis_angle(
             camera_entity.dir.cross(camera_entity.up).normalize(),
-            self.delta.1.to_radians() * self.sens,
+            -self.delta.1.to_radians() * self.sens,
         );
         self.delta = (0., 0.);
         let new_dir = pitch * camera_entity.dir;

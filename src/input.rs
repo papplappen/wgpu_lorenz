@@ -1,19 +1,20 @@
 use winit::event::{ElementState, VirtualKeyCode, WindowEvent};
 
-use crate::{lorenz, state::State};
+use crate::{lorenz::DEFAULT_DELTA_TIME, state::State};
 
 pub fn input(state: &mut State, event: &WindowEvent) -> bool {
+    // * HANDLE CAMERA INPUT FIRST
     if state.camera.controller.handle_key_input(event) {
         true
     } else {
         match event {
-            // *STEP WHEN PAUSED
+            // * STEP WHEN PAUSED
             WindowEvent::KeyboardInput { input, .. }
                 if input.virtual_keycode == Some(VirtualKeyCode::Return)
                     && input.state == ElementState::Released
                     && state.lorenz_state.paused =>
             {
-                state.lorenz_state.update(lorenz::DEFAULT_DELTA_TIME);
+                state.update_lorenz(DEFAULT_DELTA_TIME);
                 true
             }
             // * TOGGLE PAUSE
@@ -24,7 +25,7 @@ pub fn input(state: &mut State, event: &WindowEvent) -> bool {
                 state.lorenz_state.paused = !state.lorenz_state.paused;
                 true
             }
-
+            // * TOGGLE CURSOR GRAB
             WindowEvent::KeyboardInput { input, .. }
                 if input.virtual_keycode == Some(VirtualKeyCode::Slash)
                     && input.state == ElementState::Released =>

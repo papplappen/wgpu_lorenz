@@ -1,7 +1,7 @@
 use glam::DVec3;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferAddress, BufferUsages, Device, VertexBufferLayout, VertexStepMode,
+    Buffer, BufferAddress, BufferUsages, Color, Device, Queue, VertexBufferLayout, VertexStepMode,
 };
 
 use crate::lorenz::{LorenzState, NUMBER_LORENZ_POINTS};
@@ -9,16 +9,23 @@ use crate::lorenz::{LorenzState, NUMBER_LORENZ_POINTS};
 #[derive(Clone, Copy)]
 pub struct Instance {
     pub position: DVec3,
+    pub color: Color,
 }
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct RawInstance {
-    pos: [f64; 3],
+    pos: [f32; 3],
+    color: [f32; 3],
 }
 impl From<Instance> for RawInstance {
     fn from(instance: Instance) -> Self {
         Self {
-            pos: instance.position.to_array(),
+            pos: instance.position.as_vec3().to_array(),
+            color: [
+                instance.color.r as f32,
+                instance.color.g as f32,
+                instance.color.b as f32,
+            ],
         }
     }
 }
@@ -38,21 +45,34 @@ pub struct InstancesVec {
     pub raw: [RawInstance; NUMBER_LORENZ_POINTS],
     pub buffer: Buffer,
 }
-
+const DEFAULT_COLOR: Color = Color::RED;
 impl From<(&LorenzState, &Device)> for InstancesVec {
     fn from((lorenz_state, device): (&LorenzState, &wgpu::Device)) -> Self {
-        let instances = lorenz_state.points.map(|pos| Instance { position: pos });
+        let instances = lorenz_state.points.map(|pos| Instance {
+            position: pos,
+            color: DEFAULT_COLOR,
+        });
         let raw = instances.map(|i| i.into());
 
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Instance Buffer"),
             contents: bytemuck::cast_slice(&raw),
-            usage: BufferUsages::VERTEX | BufferUsages::STORAGE,
+            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
         });
         Self {
             data: instances,
             raw,
             buffer,
         }
+    }
+}
+impl InstancesVec {
+    pub fn update(&mut self, lorenz_state: &LorenzState, queue: &Queue) {
+        self.data = lorenz_state.points.map(|pos| Instance {
+            position: pos,
+            color: DEFAULT_COLOR,
+        });
+        self.raw = self.data.map(|i| i.into());
+        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.raw));
     }
 }
