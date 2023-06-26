@@ -2,7 +2,7 @@ use wgpu::{
     include_wgsl, BindGroup, BindGroupLayout, BlendState, Buffer, Color, ColorTargetState,
     ColorWrites, CommandEncoderDescriptor, DepthBiasState, DepthStencilState, Device, Extent3d,
     FragmentState, MultisampleState, Operations, PipelineLayoutDescriptor, PrimitiveState,
-    PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, StencilState,
+    PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, StencilState,
     SurfaceConfiguration, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
     TextureView, TextureViewDescriptor, VertexState,
 };
@@ -32,9 +32,6 @@ impl RenderState {
         env: &Environment,
         camera_bind_group_layout: BindGroupLayout,
     ) -> Self {
-        // * LOAD SHADER
-        let shader = env.device.create_shader_module(include_wgsl!("draw.wgsl"));
-
         // * CREATE DEPTH TEXTURE
         let depth_texture = Self::create_depth_texture(&env.device, &env.config);
 
@@ -43,12 +40,8 @@ impl RenderState {
         let instances = InstancesVec::from((lorenz_state, &env.device));
 
         // * CREATES RENDER PIPELINE
-        let render_pipeline = Self::create_render_pipeline(
-            &env.device,
-            &env.config,
-            &shader,
-            &[&camera_bind_group_layout],
-        );
+        let render_pipeline =
+            Self::create_render_pipeline(&env.device, &env.config, &[&camera_bind_group_layout]);
         Self {
             vertex_buffer,
             render_pipeline,
@@ -104,9 +97,11 @@ impl RenderState {
     fn create_render_pipeline(
         device: &Device,
         config: &SurfaceConfiguration,
-        shader: &ShaderModule,
         bind_group_layouts: &[&BindGroupLayout],
     ) -> RenderPipeline {
+        // * LOAD SHADER
+        let draw_shader = device.create_shader_module(include_wgsl!("draw.wgsl"));
+
         let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts,
@@ -116,7 +111,7 @@ impl RenderState {
             label: None,
             layout: Some(&render_pipeline_layout),
             vertex: VertexState {
-                module: shader,
+                module: &draw_shader,
                 entry_point: "vs_main",
                 buffers: &[Vertex::desc(), RawInstance::desc()],
             },
@@ -142,7 +137,7 @@ impl RenderState {
                 alpha_to_coverage_enabled: false,
             },
             fragment: Some(FragmentState {
-                module: shader,
+                module: &draw_shader,
                 entry_point: "fs_main",
                 targets: &[Some(ColorTargetState {
                     format: config.format,

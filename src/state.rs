@@ -4,6 +4,7 @@ use winit::event_loop::EventLoop;
 
 use crate::{
     camera::Camera,
+    compute::ComputeState,
     env::Environment,
     input,
     lorenz::{LorenzState, DEFAULT_DELTA_TIME},
@@ -17,6 +18,7 @@ pub struct State {
     pub env: Environment,
     pub render_state: RenderState,
     pub lorenz_state: LorenzState,
+    pub compute_state: ComputeState,
     pub camera: Camera,
 }
 
@@ -58,7 +60,7 @@ impl State {
                     // * RENDER
                     self.render_state
                         .render_call(&self.env, &self.camera.bind_group);
-                    println!("{}", 1. / start.elapsed().as_secs_f64())
+                    // println!("{}", 1. / start.elapsed().as_secs_f64())
                 }
                 Event::DeviceEvent {
                     device_id: _,
@@ -79,9 +81,10 @@ impl State {
         );
     }
     pub fn update_lorenz(&mut self, dt: f32) {
-        self.lorenz_state.update(dt);
-        self.render_state
-            .instances
-            .update(&self.lorenz_state, &self.env.queue)
+        self.compute_state.compute_call(&self.env)
+        // self.lorenz_state.update(dt);
+        // self.render_state
+        //     .instances
+        //     .update(&self.lorenz_state, &self.env.queue)
     }
 }

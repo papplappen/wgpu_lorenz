@@ -1,5 +1,11 @@
 use glam::Vec3;
+use wgpu::{
+    util::{BufferInitDescriptor, DeviceExt},
+    Buffer, BufferUsages, Device,
+};
 
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LorenzConfig {
     pub rho: f32,
     pub sigma: f32,
@@ -16,7 +22,7 @@ impl Default for LorenzConfig {
     }
 }
 
-pub const NUMBER_LORENZ_POINTS: usize = 1000000;
+pub const NUMBER_LORENZ_POINTS: usize = 10000;
 pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 impl LorenzConfig {
     fn delta(&self, state: Vec3) -> Vec3 {
@@ -29,7 +35,14 @@ impl LorenzConfig {
     }
 
     pub fn step(&self, dt: f32, state: Vec3) -> Vec3 {
-        dt * self.delta(state)
+        state + dt * self.delta(state)
+    }
+    pub fn as_buffer(&self, device: &Device) -> Buffer {
+        device.create_buffer_init(&BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(self),
+            usage: BufferUsages::UNIFORM,
+        })
     }
 }
 
@@ -56,6 +69,6 @@ impl LorenzState {
     pub fn update(&mut self, dt: f32) {
         self.points
             .iter_mut()
-            .for_each(|p| *p += self.lorenz_config.step(dt, *p));
+            .for_each(|p| *p = self.lorenz_config.step(dt, *p));
     }
 }

@@ -1,4 +1,5 @@
 pub(crate) mod camera;
+mod compute;
 pub(crate) mod env;
 pub(crate) mod input;
 pub(crate) mod instance;
@@ -8,6 +9,7 @@ pub(crate) mod state;
 pub(crate) mod vertex;
 
 use camera::Camera;
+use compute::ComputeState;
 use env::Environment;
 use lorenz::{LorenzConfig, LorenzState};
 use pollster::FutureExt;
@@ -26,11 +28,17 @@ fn main() {
 
     let render_state = RenderState::new(&lorenz_state, &env, camera_bind_group_layout);
 
+    let compute_state = ComputeState::new(
+        &env.device,
+        &render_state.instances.buffer,
+        lorenz_state.lorenz_config,
+    );
     let state = State {
         env,
         render_state,
         lorenz_state,
         camera,
+        compute_state,
     };
 
     state.run(event_loop);

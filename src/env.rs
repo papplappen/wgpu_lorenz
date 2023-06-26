@@ -46,12 +46,12 @@ impl Environment {
             })
             .await
             .unwrap();
+        dbg!(adapter.limits());
         // * CREATE DEVICE & QUEUE
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default(), None)
             .await
             .unwrap();
-
         // * CONFIGURE SURFACE
         let surface_caps = surface.get_capabilities(&adapter);
         let surface_format = surface_caps
