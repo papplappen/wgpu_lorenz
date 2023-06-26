@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use winit::event_loop::EventLoop;
 
 use crate::{
@@ -17,6 +19,7 @@ pub struct State {
     pub lorenz_state: LorenzState,
     pub camera: Camera,
 }
+
 impl State {
     pub fn run(mut self, event_loop: EventLoop<()>) {
         event_loop.run(move |event, _, control_flow| {
@@ -41,18 +44,21 @@ impl State {
                     }
                 },
                 Event::MainEventsCleared => {
+                    let start = Instant::now();
+
                     // * UPDATE LORENZ
                     if !self.lorenz_state.paused {
                         self.update_lorenz(DEFAULT_DELTA_TIME)
                     }
                     // * UPDATE CAMERA
                     if self.env.cursor_grab {
-                        self.camera.update(DEFAULT_DELTA_TIME as f32);
+                        self.camera.update(DEFAULT_DELTA_TIME);
                         self.update_camera_buffer();
                     }
                     // * RENDER
                     self.render_state
                         .render_call(&self.env, &self.camera.bind_group);
+                    println!("{}", 1. / start.elapsed().as_secs_f64())
                 }
                 Event::DeviceEvent {
                     device_id: _,
@@ -72,7 +78,7 @@ impl State {
             bytemuck::cast_slice(&[self.camera.uniform.view_proj]),
         );
     }
-    pub fn update_lorenz(&mut self, dt: f64) {
+    pub fn update_lorenz(&mut self, dt: f32) {
         self.lorenz_state.update(dt);
         self.render_state
             .instances

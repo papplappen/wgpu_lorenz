@@ -8,7 +8,7 @@ use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, Win
 pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
     1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 1.0,
 ]);
-const SPEED: f32 = 1.;
+const SPEED: f32 = 10.;
 const SENS: f32 = 0.01;
 pub struct Camera {
     pub entity: CameraEntity,
