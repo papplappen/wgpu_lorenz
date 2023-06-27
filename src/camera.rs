@@ -33,7 +33,7 @@ impl Camera {
         uniform.update(&entity);
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[uniform]),
+            contents: bytemuck::cast_slice(&uniform.view_proj),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -100,22 +100,18 @@ impl CameraEntity {
 
         CameraUniform {
             view_proj: (proj * view).to_cols_array_2d(),
-            proj: proj.to_cols_array_2d(),
         }
     }
 }
 #[repr(C)]
-#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
 pub struct CameraUniform {
     pub view_proj: [[f32; 4]; 4],
-    pub proj: [[f32; 4]; 4],
 }
 
 impl CameraUniform {
     pub fn new() -> Self {
         Self {
             view_proj: Mat4::IDENTITY.to_cols_array_2d(),
-            proj: Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
     pub fn update(&mut self, camera_entity: &CameraEntity) {

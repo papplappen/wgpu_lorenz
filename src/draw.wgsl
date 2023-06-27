@@ -10,7 +10,6 @@ struct VertexInput {
 
 struct CameraUniform {
     view_proj: mat4x4<f32>,
-    proj: mat4x4<f32>
 }
 
 struct InstanceInput {
@@ -21,23 +20,16 @@ struct InstanceInput {
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
 
-const POINT_RADIUS = 4.0;
+const POINT_RADIUS = 1.;
 const ASPECT_RATIO = 0.5625;
-
 @vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput
 ) -> VertexOutput {
-    // let pos = camera.view_proj * ((vec4<f32>(instance.pos, 1.0) + vec4<f32>(model.position, 0.0)));
     let ppos = camera.view_proj * vec4<f32>(instance.pos, 1.0);
 
-    let size = POINT_RADIUS/ ppos.w * vec4<f32>(ASPECT_RATIO, 1. , 0., 1.);
-
-    // let size = POINT_RADIUS/ppos.w;
-
-    // let pos = ppos + size * vec4<f32>(model.position, 1.0);
-    let pos = ppos + camera.proj * vec4<f32>(model.position.xy, -ppos.w, 1.0);
+    let pos = ppos + POINT_RADIUS * vec4<f32>(ASPECT_RATIO * model.position.x, model.position.y,0.,0.);
 
 
     return VertexOutput(pos, model.position, vec4<f32>(instance.color, 1.0));
