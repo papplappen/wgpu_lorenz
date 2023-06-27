@@ -31,9 +31,9 @@ fn vs_main(
     // let pos = camera.view_proj * ((vec4<f32>(instance.pos, 1.0) + vec4<f32>(model.position, 1.0)));
     let ppos = camera.view_proj * vec4<f32>(instance.pos, 1.0);
     
-    // let size = POINT_RADIUS/ppos.w * vec4<f32>(1./ASPECT_RATIO, ASPECT_RATIO, 0., 1.);
+    let size = POINT_RADIUS/ppos.w * vec4<f32>(ASPECT_RATIO, 1. , 0., 1.);
 
-    let size = POINT_RADIUS/ppos.w;
+    // let size = POINT_RADIUS/ppos.w;
 
     let pos = ppos + size * vec4<f32>(model.position, 1.0);
 
