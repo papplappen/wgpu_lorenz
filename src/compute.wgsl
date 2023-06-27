@@ -1,14 +1,12 @@
-const SIZE = 100u;
-
 struct Instance {
-    @location(0) pos: vec3<f32>,
-    @location(1) color: vec3<f32>,
+    pos: vec3<f32>,
+    color: vec3<f32>,
 }
 
 struct LorenzConfig {
-    @location(0) rho: f32,
-    @location(1) sigma: f32,
-    @location(2) beta: f32,
+    /* @location(0) */ rho: f32,
+    /* @location(1) */ sigma: f32,
+    /* @location(2) */ beta: f32,
 }
 
 @group(0) @binding(0)
@@ -29,16 +27,17 @@ fn lorenz_step(config: LorenzConfig, dt: f32, state: vec3<f32>) -> vec3<f32> {
     return state + dt * lorenz_delta(config, state);
 }
 
+
 @compute
-@workgroup_size(1,1,1)
+@workgroup_size(1)
 fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let i = flatten_global_id(global_id);
+    let i = global_id.x * NUM_WORKGROUPS_PER_DIM * NUM_WORKGROUPS_PER_DIM
+          + global_id.y * NUM_WORKGROUPS_PER_DIM
+          + global_id.z;
 
     let config = LorenzConfig(28., 10., 8./3.);
 
-    instances[i].pos = lorenz_step(config, 0.001, instances[i].pos);
-}
+    instances[i].pos = lorenz_step(config, 0.01, instances[i].pos);
 
-fn flatten_global_id(global_id: vec3<u32>) -> u32 {
-    return global_id.x * SIZE * SIZE + global_id.y * SIZE + global_id.z;
+    instances[i].color = vec3<f32>(0.1,0.4,0.8);
 }

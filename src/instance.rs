@@ -13,9 +13,12 @@ pub struct Instance {
 }
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+
 pub struct RawInstance {
     pos: [f32; 3],
+    _pad1: f32,
     color: [f32; 3],
+    _pad2: f32,
 }
 impl From<Instance> for RawInstance {
     fn from(instance: Instance) -> Self {
@@ -26,6 +29,8 @@ impl From<Instance> for RawInstance {
                 instance.color.g as f32,
                 instance.color.b as f32,
             ],
+            _pad1: 0.,
+            _pad2: 0.,
         }
     }
 }

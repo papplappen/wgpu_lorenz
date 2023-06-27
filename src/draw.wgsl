@@ -10,6 +10,7 @@ struct VertexInput {
 struct CameraUniform {
     view_proj: mat4x4<f32>
 }
+
 struct InstanceInput {
     @location(1) pos: vec3<f32>,
     @location(2) color: vec3<f32>,
@@ -17,8 +18,6 @@ struct InstanceInput {
 
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
-
-
 
 @vertex
 fn vs_main(

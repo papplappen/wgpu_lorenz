@@ -24,6 +24,8 @@ pub struct State {
 
 impl State {
     pub fn run(mut self, event_loop: EventLoop<()>) {
+        let mut start = Instant::now();
+
         event_loop.run(move |event, _, control_flow| {
             match event {
                 Event::WindowEvent {
@@ -46,8 +48,6 @@ impl State {
                     }
                 },
                 Event::MainEventsCleared => {
-                    let start = Instant::now();
-
                     // * UPDATE LORENZ
                     if !self.lorenz_state.paused {
                         self.update_lorenz(DEFAULT_DELTA_TIME)
@@ -60,8 +60,12 @@ impl State {
                     // * RENDER
                     self.render_state
                         .render_call(&self.env, &self.camera.bind_group);
-                    // println!("{}", 1. / start.elapsed().as_secs_f64())
                 }
+                Event::RedrawEventsCleared => {
+                    println!("{}", 1. / start.elapsed().as_secs_f64());
+                    start = Instant::now();
+                }
+
                 Event::DeviceEvent {
                     device_id: _,
                     event,

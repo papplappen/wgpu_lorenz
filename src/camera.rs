@@ -24,7 +24,7 @@ impl Camera {
         config: &SurfaceConfiguration,
     ) -> (Self, BindGroupLayout) {
         let entity = CameraEntity {
-            pos: Vec3::ONE * 10.,
+            pos: Vec3::ONE * 50.,
             dir: Vec3::NEG_ONE.normalize(),
             up: Vec3::Y,
             aspect_ratio: config.width as f32 / config.height as f32,

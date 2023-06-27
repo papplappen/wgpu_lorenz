@@ -4,6 +4,8 @@ use wgpu::{
     Buffer, BufferUsages, Device,
 };
 
+use crate::compute::NUM_WORKGROUPS_PER_DIM;
+
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LorenzConfig {
@@ -22,7 +24,8 @@ impl Default for LorenzConfig {
     }
 }
 
-pub const NUMBER_LORENZ_POINTS: usize = 10000;
+pub const NUMBER_LORENZ_POINTS: usize =
+    (NUM_WORKGROUPS_PER_DIM * NUM_WORKGROUPS_PER_DIM * NUM_WORKGROUPS_PER_DIM) as usize;
 pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 impl LorenzConfig {
     fn delta(&self, state: Vec3) -> Vec3 {

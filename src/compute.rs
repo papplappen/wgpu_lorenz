@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+
 use wgpu::{
-    include_wgsl, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
-    BindGroupLayoutDescriptor, BindGroupLayoutEntry, Buffer, CommandEncoderDescriptor,
-    ComputePassDescriptor, ComputePipeline, ComputePipelineDescriptor, Device,
-    PipelineLayoutDescriptor, ShaderStages,
+    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
+    BindGroupLayoutEntry, Buffer, CommandEncoderDescriptor, ComputePassDescriptor, ComputePipeline,
+    ComputePipelineDescriptor, Device, PipelineLayoutDescriptor, ShaderModuleDescriptor,
+    ShaderSource, ShaderStages,
 };
 
 use crate::{env::Environment, lorenz::LorenzConfig};
@@ -11,7 +13,8 @@ pub struct ComputeState {
     compute_pipeline: ComputePipeline,
     bind_group: BindGroup,
 }
-const NUM_WORKGROUPS_PER_DIM: u32 = 100;
+
+pub const NUM_WORKGROUPS_PER_DIM: u32 = 100;
 
 impl ComputeState {
     pub fn new(device: &Device, instance_buffer: &Buffer, lorenz_config: LorenzConfig) -> Self {
@@ -29,13 +32,23 @@ impl ComputeState {
         device: &Device,
         bind_group_layouts: &[&BindGroupLayout],
     ) -> ComputePipeline {
-        let compute_shader = device.create_shader_module(include_wgsl!("compute.wgsl"));
+        let compute_wgsl = include_str!("compute.wgsl");
+        let compute_wgsl = format!(
+            "const NUM_WORKGROUPS_PER_DIM = {}u; {}",
+            NUM_WORKGROUPS_PER_DIM, compute_wgsl
+        );
+
+        let compute_shader = device.create_shader_module(ShaderModuleDescriptor {
+            label: None,
+            source: ShaderSource::Wgsl(Cow::from(compute_wgsl)),
+        });
 
         let compute_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts,
             push_constant_ranges: &[],
         });
+
         device.create_compute_pipeline(&ComputePipelineDescriptor {
             label: None,
             layout: Some(&compute_pipeline_layout),
