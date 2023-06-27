@@ -85,7 +85,7 @@ impl State {
         );
     }
     pub fn update_lorenz(&mut self, dt: f32) {
-        self.compute_state.compute_call(&self.env)
+        self.compute_state.compute_call(&self.env);
         // self.lorenz_state.update(dt);
         // self.render_state
         //     .instances

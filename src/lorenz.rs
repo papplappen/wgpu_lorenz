@@ -58,9 +58,9 @@ impl LorenzState {
     pub fn new(lorenz_config: LorenzConfig) -> Self {
         let points = (0..NUMBER_LORENZ_POINTS)
             .map(|i| Vec3 {
-                x: (i as f32) / (NUMBER_LORENZ_POINTS as f32),
+                x: -10. + 20. * (i as f32) / (NUMBER_LORENZ_POINTS as f32),
                 y: 0.,
-                z: 0.,
+                z: -10. + 20. * (i as f32) / (NUMBER_LORENZ_POINTS as f32),
             })
             .collect();
         Self {

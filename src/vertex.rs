@@ -4,23 +4,23 @@ use wgpu::{util::DeviceExt, Buffer, BufferUsages, Device, VertexBufferLayout};
 const SIZE: f32 = 1.;
 pub const SQUARE: [Vec3; 4] = [
     Vec3 {
-        x: 0.,
-        y: 0.,
+        x: -0.5 * SIZE,
+        y: -0.5 * SIZE,
         z: 0.,
     },
     Vec3 {
-        x: SIZE,
-        y: 0.,
+        x: 0.5 * SIZE,
+        y: -0.5 * SIZE,
         z: 0.,
     },
     Vec3 {
-        x: 0.,
-        y: SIZE,
+        x: -0.5 * SIZE,
+        y: 0.5 * SIZE,
         z: 0.,
     },
     Vec3 {
-        x: SIZE,
-        y: SIZE,
+        x: 0.5 * SIZE,
+        y: 0.5 * SIZE,
         z: 0.,
     },
 ];

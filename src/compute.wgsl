@@ -27,6 +27,8 @@ fn lorenz_step(config: LorenzConfig, dt: f32, state: vec3<f32>) -> vec3<f32> {
     return state + dt * lorenz_delta(config, state);
 }
 
+const config = LorenzConfig(28., 10., 2.666666666);
+
 
 @compute
 @workgroup_size(1)
@@ -35,9 +37,7 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
           + global_id.y * NUM_WORKGROUPS_PER_DIM
           + global_id.z;
 
-    let config = LorenzConfig(28., 10., 8./3.);
-
     instances[i].pos = lorenz_step(config, 0.01, instances[i].pos);
 
-    instances[i].color = vec3<f32>(0.1,0.4,0.8);
+    // instances[i].color = vec3<f32>(0.9,0.3,0.1);
 }
