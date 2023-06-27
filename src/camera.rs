@@ -5,11 +5,8 @@ use wgpu::{
 };
 use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 
-pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
-    1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 1.0,
-]);
-const SPEED: f32 = 10.;
-const SENS: f32 = 0.01;
+const SPEED: f32 = 100.;
+const SENS: f32 = 0.1;
 pub struct Camera {
     pub entity: CameraEntity,
     pub uniform: CameraUniform,
@@ -29,14 +26,14 @@ impl Camera {
             up: Vec3::Y,
             aspect_ratio: config.width as f32 / config.height as f32,
             fov_y: 45.0,
-            z_near: 0.1,
+            z_near: 1.,
             z_far: 1000.0,
         };
         let mut uniform = CameraUniform::new();
-        uniform.update_view_proj(&entity);
+        uniform.update(&entity);
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&uniform.view_proj),
+            contents: bytemuck::cast_slice(&[uniform]),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -77,7 +74,7 @@ impl Camera {
     pub fn update(&mut self, delta: f32) {
         self.controller
             .update_camera_entity(&mut self.entity, delta);
-        self.uniform.update_view_proj(&self.entity);
+        self.uniform.update(&self.entity);
     }
 }
 #[derive(Debug)]
@@ -92,31 +89,37 @@ pub struct CameraEntity {
 }
 
 impl CameraEntity {
-    pub fn build_view_projection_matrix(&self) -> Mat4 {
+    pub fn build_view_projection_matrix(&self) -> CameraUniform {
         let view = Mat4::look_to_rh(self.pos, self.dir, self.up);
-        let proj = glam::Mat4::perspective_rh_gl(
+        let proj = Mat4::perspective_rh(
             self.fov_y.to_radians(),
             self.aspect_ratio,
             self.z_near,
             self.z_far,
         );
-        OPENGL_TO_WGPU_MATRIX * proj * view
+
+        CameraUniform {
+            view_proj: (proj * view).to_cols_array_2d(),
+            proj: proj.to_cols_array_2d(),
+        }
     }
 }
+#[repr(C)]
+#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
 pub struct CameraUniform {
     pub view_proj: [[f32; 4]; 4],
+    pub proj: [[f32; 4]; 4],
 }
 
 impl CameraUniform {
     pub fn new() -> Self {
         Self {
             view_proj: Mat4::IDENTITY.to_cols_array_2d(),
+            proj: Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
-    pub fn update_view_proj(&mut self, camera_entity: &CameraEntity) {
-        self.view_proj = camera_entity
-            .build_view_projection_matrix()
-            .to_cols_array_2d();
+    pub fn update(&mut self, camera_entity: &CameraEntity) {
+        *self = camera_entity.build_view_projection_matrix();
     }
 }
 
@@ -191,7 +194,7 @@ impl CameraController {
             false
         }
     }
-    pub fn update_camera_entity(&mut self, camera_entity: &mut CameraEntity, delta: f32) {
+    pub fn update_camera_entity(&mut self, camera_entity: &mut CameraEntity, dt: f32) {
         camera_entity.dir = camera_entity.dir.normalize();
         let yaw = Mat3::from_rotation_y(-self.delta.0.to_radians() * self.sens);
         camera_entity.dir = yaw * camera_entity.dir;
@@ -213,7 +216,7 @@ impl CameraController {
             camera_entity.dir.y = camera_entity.dir.y.signum();
         }
         camera_entity.dir = camera_entity.dir.normalize();
-        let forward = camera_entity.dir * self.speed * delta;
+        let forward = camera_entity.dir * self.speed * dt;
         if self.is_forward_pressed {
             camera_entity.pos += forward;
         }
@@ -221,7 +224,7 @@ impl CameraController {
             camera_entity.pos -= forward;
         }
 
-        let right = camera_entity.dir.cross(camera_entity.up).normalize() * self.speed * delta;
+        let right = camera_entity.dir.cross(camera_entity.up).normalize() * self.speed * dt;
 
         if self.is_right_pressed {
             camera_entity.pos += right;

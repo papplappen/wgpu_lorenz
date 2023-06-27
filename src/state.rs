@@ -24,8 +24,9 @@ pub struct State {
 
 impl State {
     pub fn run(mut self, event_loop: EventLoop<()>) {
+        // * SETUP
         let mut start = Instant::now();
-
+        let mut delta = DEFAULT_DELTA_TIME;
         event_loop.run(move |event, _, control_flow| {
             match event {
                 Event::WindowEvent {
@@ -54,7 +55,7 @@ impl State {
                     }
                     // * UPDATE CAMERA
                     if self.env.cursor_grab {
-                        self.camera.update(DEFAULT_DELTA_TIME);
+                        self.camera.update(delta);
                         self.update_camera_buffer();
                     }
                     // * RENDER
@@ -62,7 +63,8 @@ impl State {
                         .render_call(&self.env, &self.camera.bind_group);
                 }
                 Event::RedrawEventsCleared => {
-                    println!("{}", 1. / start.elapsed().as_secs_f64());
+                    delta = start.elapsed().as_secs_f32();
+                    println!("{}", 1. / delta);
                     start = Instant::now();
                 }
 
