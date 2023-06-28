@@ -1,8 +1,8 @@
 use glam::Vec3;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferAddress, BufferUsages, Color, Device, Queue,
-    VertexBufferLayout, VertexStepMode,
+    Buffer, BufferAddress, BufferUsages, Color, Device, Queue, VertexAttribute, VertexBufferLayout,
+    VertexStepMode,
 };
 
 use crate::lorenz::LorenzState;
@@ -17,7 +17,7 @@ pub struct Instance {
 
 pub struct RawInstance {
     pos: [f32; 3],
-    _pad1: f32,
+    _pad: f32,
     color: [f32; 3],
     _pad2: f32,
 }
@@ -30,22 +30,32 @@ impl From<Instance> for RawInstance {
                 instance.color.g as f32,
                 instance.color.b as f32,
             ],
-            _pad1: 0.,
-            _pad2: 0.,
+            _pad: f32::NAN,
+            _pad2: f32::NAN,
         }
     }
 }
 impl RawInstance {
-    const ATTRIBS: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![1 => Float32x3, 2 => Float32x3];
     pub fn desc() -> VertexBufferLayout<'static> {
         VertexBufferLayout {
             array_stride: std::mem::size_of::<RawInstance>() as BufferAddress,
             step_mode: VertexStepMode::Instance,
-            attributes: &Self::ATTRIBS,
+            attributes: &[
+                VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x3,
+                    offset: 0,
+                    shader_location: 1,
+                },
+                VertexAttribute {
+                    format: wgpu::VertexFormat::Float32x3,
+                    offset: 4 * std::mem::size_of::<f32>() as u64,
+                    shader_location: 2,
+                },
+            ],
         }
     }
 }
+
 pub struct InstancesVec {
     pub data: Vec<Instance>,
     pub raw: Vec<RawInstance>,
@@ -58,7 +68,7 @@ pub struct InstancesVec {
 //     a: 1.0,
 // };
 
-const DEFAULT_COLOR : &str = &"0000ff";
+const DEFAULT_COLOR: &str = "00ff00";
 
 impl From<(&LorenzState, &Device)> for InstancesVec {
     fn from((lorenz_state, device): (&LorenzState, &wgpu::Device)) -> Self {
@@ -67,18 +77,20 @@ impl From<(&LorenzState, &Device)> for InstancesVec {
             .iter()
             .map(|pos| Instance {
                 position: *pos,
-                color: color_from_hex(DEFAULT_COLOR).unwrap(),
+                color: Color {
+                    r: rand::random(),
+                    g: rand::random(),
+                    b: rand::random(),
+                    a: rand::random(),
+                },
             })
             .collect();
-        let raw: Vec<RawInstance> =
-            instances.iter().map(|i| (*i).into()).collect();
 
+        let raw: Vec<RawInstance> = instances.iter().map(|i| (*i).into()).collect();
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Instance Buffer"),
             contents: bytemuck::cast_slice(&raw),
-            usage: BufferUsages::VERTEX
-                | BufferUsages::COPY_DST
-                | BufferUsages::STORAGE,
+            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST | BufferUsages::STORAGE,
         });
         Self {
             data: instances,

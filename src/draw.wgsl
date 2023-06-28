@@ -13,14 +13,14 @@ struct CameraUniform {
 }
 
 struct InstanceInput {
-    @location(1) pos: vec3<f32>,
-    @location(2) color: vec3<f32>,
+    @location(1) @size(16) pos: vec3<f32>,
+    @location(2) @size(16) color: vec3<f32>,
 }
 
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
 
-const POINT_RADIUS = 1.;
+const POINT_RADIUS = .25;
 const ASPECT_RATIO = 0.5625;
 @vertex
 fn vs_main(
@@ -40,7 +40,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     if radius_sq < 0.25 {
         // return in.color;
         let c = smoothstep(-1., 1., in.model_position.x + in.model_position.y);
-        return vec4<f32>(vec3<f32>(c), 1.);
+        // return vec4<f32>(vec3<f32>(c), 1.);
+        return c*in.color;
+
     } else {
         // return vec4<f32>(0.,0.,0.,1.);
         discard;
