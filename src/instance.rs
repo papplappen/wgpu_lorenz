@@ -1,7 +1,8 @@
 use glam::Vec3;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferAddress, BufferUsages, Color, Device, Queue, VertexBufferLayout, VertexStepMode,
+    Buffer, BufferAddress, BufferUsages, Color, Device, Queue,
+    VertexBufferLayout, VertexStepMode,
 };
 
 use crate::lorenz::LorenzState;
@@ -50,7 +51,15 @@ pub struct InstancesVec {
     pub raw: Vec<RawInstance>,
     pub buffer: Buffer,
 }
-const DEFAULT_COLOR: Color = Color::WHITE;
+// const DEFAULT_COLOR: Color = Color {
+//     r: 219. / 256.,
+//     g: 285. / 256.,
+//     b: 6. / 256.,
+//     a: 1.0,
+// };
+
+const DEFAULT_COLOR : &str = &"0000ff";
+
 impl From<(&LorenzState, &Device)> for InstancesVec {
     fn from((lorenz_state, device): (&LorenzState, &wgpu::Device)) -> Self {
         let instances: Vec<Instance> = lorenz_state
@@ -58,15 +67,18 @@ impl From<(&LorenzState, &Device)> for InstancesVec {
             .iter()
             .map(|pos| Instance {
                 position: *pos,
-                color: DEFAULT_COLOR,
+                color: color_from_hex(DEFAULT_COLOR).unwrap(),
             })
             .collect();
-        let raw: Vec<RawInstance> = instances.iter().map(|i| (*i).into()).collect();
+        let raw: Vec<RawInstance> =
+            instances.iter().map(|i| (*i).into()).collect();
 
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Instance Buffer"),
             contents: bytemuck::cast_slice(&raw),
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST | BufferUsages::STORAGE,
+            usage: BufferUsages::VERTEX
+                | BufferUsages::COPY_DST
+                | BufferUsages::STORAGE,
         });
         Self {
             data: instances,
@@ -82,10 +94,26 @@ impl InstancesVec {
             .iter()
             .map(|pos| Instance {
                 position: *pos,
-                color: DEFAULT_COLOR,
+                color: color_from_hex(DEFAULT_COLOR).unwrap(),
             })
             .collect();
         self.raw = self.data.iter().map(|i| (*i).into()).collect();
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.raw));
     }
+}
+
+/// For example:
+/// ```rs
+/// let color = color_from_hex("dbafea").unwrap();
+/// ```
+fn color_from_hex(hex: &str) -> Result<Color, std::num::ParseIntError> {
+    let r = u8::from_str_radix(&hex[0..2], 16)?;
+    let g = u8::from_str_radix(&hex[2..4], 16)?;
+    let b = u8::from_str_radix(&hex[4..6], 16)?;
+    Ok(Color {
+        r: (r as f64) / 256.,
+        g: (g as f64) / 256.,
+        b: (b as f64) / 256.,
+        a: 1.,
+    })
 }
