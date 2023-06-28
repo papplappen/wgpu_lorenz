@@ -50,7 +50,7 @@ pub struct InstancesVec {
     pub raw: Vec<RawInstance>,
     pub buffer: Buffer,
 }
-const DEFAULT_COLOR: Color = Color::RED;
+const DEFAULT_COLOR: Color = Color::WHITE;
 impl From<(&LorenzState, &Device)> for InstancesVec {
     fn from((lorenz_state, device): (&LorenzState, &wgpu::Device)) -> Self {
         let instances: Vec<Instance> = lorenz_state

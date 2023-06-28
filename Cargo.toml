@@ -9,6 +9,7 @@ edition = "2021"
 bytemuck = { version = "1.13", features = ["derive"] }
 glam = "0.24"
 pollster = "0.3"
+rand = "0.8.5"
 wgpu = "0.16"
 winit = "0.28"
 

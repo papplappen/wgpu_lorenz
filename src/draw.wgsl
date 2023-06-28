@@ -31,14 +31,13 @@ fn vs_main(
 
     let pos = ppos + POINT_RADIUS * vec4<f32>(ASPECT_RATIO * model.position.x, model.position.y,0.,0.);
 
-
     return VertexOutput(pos, model.position, vec4<f32>(instance.color, 1.0));
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let radius_sq = dot(in.model_position, in.model_position);
-    if radius_sq < 0.25{
+    if radius_sq < 0.25 {
         // return in.color;
         return vec4<f32>(in.model_position, 1.);
     } else {

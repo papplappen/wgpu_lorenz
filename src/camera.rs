@@ -1,4 +1,4 @@
-use glam::{Mat3, Mat4, Vec3};
+use glam::{Mat3, Mat4, Vec3, vec3};
 use wgpu::{
     util::DeviceExt, BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer,
     BufferUsages, Device, ShaderStages, SurfaceConfiguration,
@@ -20,9 +20,12 @@ impl Camera {
         device: &Device,
         config: &SurfaceConfiguration,
     ) -> (Self, BindGroupLayout) {
+        let pos = 0.7 * vec3(-111.74516, 193.78638, -38.64965);
+        let dir = vec3(0.5124362, -0.8005198, 0.31076893);
+
         let entity = CameraEntity {
-            pos: Vec3::ONE * 50.,
-            dir: Vec3::NEG_ONE.normalize(),
+            pos,
+            dir: dir.normalize(),
             up: Vec3::Y,
             aspect_ratio: config.width as f32 / config.height as f32,
             fov_y: 45.0,

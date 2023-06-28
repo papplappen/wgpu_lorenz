@@ -1,4 +1,5 @@
 use glam::Vec3;
+use rand::Rng;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     Buffer, BufferUsages, Device,
@@ -24,8 +25,9 @@ impl Default for LorenzConfig {
     }
 }
 
-pub const NUMBER_LORENZ_POINTS: usize =
-    (NUM_WORKGROUPS_PER_DIM * NUM_WORKGROUPS_PER_DIM * NUM_WORKGROUPS_PER_DIM) as usize;
+pub const NUMBER_LORENZ_POINTS: usize = (NUM_WORKGROUPS_PER_DIM
+    * NUM_WORKGROUPS_PER_DIM
+    * NUM_WORKGROUPS_PER_DIM) as usize;
 pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 impl LorenzConfig {
     fn delta(&self, state: Vec3) -> Vec3 {
@@ -57,10 +59,13 @@ pub struct LorenzState {
 impl LorenzState {
     pub fn new(lorenz_config: LorenzConfig) -> Self {
         let points = (0..NUMBER_LORENZ_POINTS)
-            .map(|i| Vec3 {
-                x: -10. + 20. * (i as f32) / (NUMBER_LORENZ_POINTS as f32),
-                y: 0.,
-                z: -10. + 20. * (i as f32) / (NUMBER_LORENZ_POINTS as f32),
+            .map(|_| {
+                const N : f32 = 50.;
+                    Vec3 {
+                    x: rand::thread_rng().gen_range(-N..N),
+                    y: rand::thread_rng().gen_range(-N..N),
+                    z: rand::thread_rng().gen_range(-N..N),
+                }
             })
             .collect();
         Self {
