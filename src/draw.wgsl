@@ -20,7 +20,7 @@ struct InstanceInput {
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
 
-const POINT_RADIUS = .25;
+const POINT_RADIUS = .5;
 const ASPECT_RATIO = 0.5625;
 @vertex
 fn vs_main(

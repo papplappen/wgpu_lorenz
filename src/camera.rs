@@ -1,4 +1,4 @@
-use glam::{Mat3, Mat4, Vec3, vec3};
+use glam::{vec3, Mat3, Mat4, Vec3};
 use wgpu::{
     util::DeviceExt, BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer,
     BufferUsages, Device, ShaderStages, SurfaceConfiguration,
@@ -6,6 +6,7 @@ use wgpu::{
 use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 
 const SPEED: f32 = 100.;
+const SHIFT_SPEED: f32 = 0.1 * SPEED;
 const SENS: f32 = 0.1;
 pub struct Camera {
     pub entity: CameraEntity,
@@ -179,8 +180,17 @@ impl CameraController {
                         self.is_right_pressed = is_pressed;
                         true
                     }
+
                     _ => false,
                 }
+            }
+            WindowEvent::ModifiersChanged(modifier_state) => {
+                if modifier_state.shift() {
+                    self.speed = SHIFT_SPEED;
+                } else {
+                    self.speed = SPEED
+                }
+                true
             }
             _ => false,
         }
