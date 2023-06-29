@@ -20,7 +20,7 @@ struct InstanceInput {
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
 
-const POINT_RADIUS = .5;
+const POINT_RADIUS = 1.;
 const ASPECT_RATIO = 0.5625;
 @vertex
 fn vs_main(
@@ -38,13 +38,9 @@ fn vs_main(
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let radius_sq = dot(in.model_position, in.model_position);
     if radius_sq < 0.25 {
-        // return in.color;
         let c = smoothstep(-1., 1., in.model_position.x + in.model_position.y);
-        // return vec4<f32>(vec3<f32>(c), 1.);
-        return c*in.color;
-
+        return vec4<f32>(c, c, c, 1.) * in.color;
     } else {
-        return vec4<f32>(1.,0.,0.,0.2);
-        // discard;
+        discard;
     }
 }

@@ -7,6 +7,7 @@ pub(crate) mod lorenz;
 pub(crate) mod render;
 pub(crate) mod state;
 pub(crate) mod vertex;
+pub(crate) mod texture;
 
 use camera::Camera;
 use compute::ComputeState;
@@ -16,6 +17,7 @@ use pollster::FutureExt;
 use render::RenderState;
 use state::State;
 use winit::event_loop::EventLoop;
+
 
 fn main() {
     let event_loop = EventLoop::new();
