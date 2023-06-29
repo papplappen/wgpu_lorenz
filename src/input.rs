@@ -30,15 +30,16 @@ pub fn input(state: &mut State, event: &WindowEvent) -> bool {
                 if input.virtual_keycode == Some(VirtualKeyCode::Slash)
                     && input.state == ElementState::Released =>
             {
-                println!("{}",state.camera.entity.pos);
-                println!("{}",state.camera.entity.dir);
-                
+                println!("{}", state.camera.entity.pos);
+                println!("{}", state.camera.entity.dir);
+
                 if state.env.cursor_grab {
                     state
                         .env
                         .window
                         .set_cursor_grab(winit::window::CursorGrabMode::None)
                         .unwrap();
+
                     state.env.window.set_cursor_visible(true);
                 } else {
                     state

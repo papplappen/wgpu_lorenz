@@ -141,7 +141,7 @@ impl RenderState {
                 entry_point: "fs_main",
                 targets: &[Some(ColorTargetState {
                     format: config.format,
-                    blend: Some(BlendState::REPLACE),
+                    blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 })],
             }),

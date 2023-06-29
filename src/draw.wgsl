@@ -44,7 +44,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         return c*in.color;
 
     } else {
-        // return vec4<f32>(0.,0.,0.,1.);
-        discard;
+        return vec4<f32>(1.,0.,0.,0.2);
+        // discard;
     }
 }
