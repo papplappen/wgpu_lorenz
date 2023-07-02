@@ -9,7 +9,7 @@ pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 
 const NUMBER_LORENZ_POINTS: usize = 1000000;
 
-const SMOOTH_SHADING: bool = true;
+const SMOOTH_SHADING: bool = false;
 
 pub struct Config {
     pub lorenz: LorenzConfig,
