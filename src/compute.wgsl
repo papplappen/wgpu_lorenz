@@ -23,7 +23,7 @@ var<uniform> config: Config;
 @group(0) @binding(2)
 var<uniform> delta_time: f32;
 
-fn lorenz_delta(lorenz_config: LorenzConfig, state: vec3<f32>) -> vec3<f32> {
+fn lorenz_vel(lorenz_config: LorenzConfig, state: vec3<f32>) -> vec3<f32> {
     let x = state.x;
     let y = state.y;
     let z = state.z;
@@ -34,20 +34,26 @@ fn lorenz_delta(lorenz_config: LorenzConfig, state: vec3<f32>) -> vec3<f32> {
     );
 }
 
-fn lorenz_step(lorenz_config: LorenzConfig, dt: f32, state: vec3<f32>) -> vec3<f32> {
-    return state + lorenz_config.step_size_factor * dt * lorenz_delta(lorenz_config, state);
-}
+// fn lorenz_step(lorenz_config: LorenzConfig, dt: f32, state: vec3<f32>) -> vec3<f32> {
+//     return state + lorenz_config.step_size_factor * dt * lorenz_delta(lorenz_config, state);
+// }
 
 
 @compute
 @workgroup_size(1)
 fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let i = global_id.x * config.num_workgroups.x * config.num_workgroups.x + global_id.y * config.num_workgroups.y + global_id.z;
+    let i = global_id.x * config.num_workgroups.x * config.num_workgroups.x
+          + global_id.y * config.num_workgroups.y
+          + global_id.z;
 
-    instances[i].pos = lorenz_step(config.lorenz, delta_time, instances[i].pos);
+    let vel = lorenz_vel(config.lorenz, instances[i].pos);
+    let step = config.lorenz.step_size_factor * delta_time * vel;
+    
+    instances[i].pos += step;
+    instances[i].color = vel_to_color(vel);
 }
 
-const VEL_SCALE = 0.01;
+const VEL_SCALE = 0.0075;
 const SLOW_COLOR = vec3<f32>(.66, .74, .89);
 const FAST_COLOR = vec3<f32>(.89, .44, .11);
 
@@ -55,11 +61,11 @@ fn vel_to_color(vel: vec3<f32>) -> vec3<f32> {
     
     let mag = length(vel);
     let value = VEL_SCALE * mag;
-    // return mix(SLOW_COLOR, FAST_COLOR, value);
-    return gradient(value);
+    return mix(SLOW_COLOR, FAST_COLOR, value);
+    // return gradient(value);
 }
 
-fn gradient(value : f32) -> vec3<f32> {
-    let i = u32(saturate(value) * 33.);
-    return vec3<f32>(TEST[i]);
-}
+// fn gradient(value : f32) -> vec3<f32> {
+//     let i = u32(saturate(value) * 33.);
+//     return vec3<f32>(TEST[i]);
+// }
