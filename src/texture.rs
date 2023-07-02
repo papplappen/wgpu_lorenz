@@ -13,7 +13,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(device: &Device, queue: &Queue, bytes: &[u8]) -> Self {
+    pub fn new(device: &Device, queue: &Queue, bytes: &[u8], visibility: ShaderStages) -> Self {
         let (image, width, height) = {
             let image = image::load_from_memory(bytes).unwrap();
             let (width, height) = image.dimensions();
@@ -70,7 +70,7 @@ impl Texture {
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: ShaderStages::FRAGMENT | ShaderStages::COMPUTE,
+                    visibility,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -80,7 +80,7 @@ impl Texture {
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: ShaderStages::FRAGMENT | ShaderStages::COMPUTE,
+                    visibility,
                     ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },

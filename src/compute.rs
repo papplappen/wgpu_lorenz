@@ -37,7 +37,7 @@ impl ComputeState {
             Self::create_bind_group(&env.device, instance_buffer, config, &delta_time_buffer);
 
         let gradient_texture =
-            Texture::new(&env.device, &env.queue, include_bytes!("../gradient.png"));
+            Texture::new(&env.device, &env.queue, include_bytes!("../gradient.png"), ShaderStages::COMPUTE);
 
         let compute_pipeline = Self::create_compute_pipeline(
             &env.device,

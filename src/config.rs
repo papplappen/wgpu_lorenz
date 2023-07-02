@@ -9,10 +9,13 @@ pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 
 const NUMBER_LORENZ_POINTS: usize = 1000000;
 
+const SMOOTH_SHADING: bool = true;
+
 pub struct Config {
     pub lorenz: LorenzConfig,
     pub num_lorenz_points: usize,
     pub num_workgroups: (u32, u32, u32),
+    pub smooth_shading: bool
 }
 
 impl Default for Config {
@@ -26,6 +29,7 @@ impl Default for Config {
                 temp_num_workgroups,
                 temp_num_workgroups,
             ),
+            smooth_shading: SMOOTH_SHADING
         }
     }
 }
@@ -58,3 +62,26 @@ impl ConfigComputeShader {
         })
     }
 }
+
+#[repr(C)]
+#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
+pub struct ConfigDrawShader {
+    smooth_shading: u32,
+}
+impl From<&Config> for ConfigDrawShader {
+    fn from(cfg: &Config) -> Self {
+        Self {
+            smooth_shading: cfg.smooth_shading as u32
+        }
+    }
+}
+impl ConfigDrawShader {
+    pub fn as_buffer(&self, device: &Device) -> Buffer {
+        device.create_buffer_init(&BufferInitDescriptor {
+            label: Some("Config Buffer"),
+            contents: bytemuck::bytes_of(self),
+            usage: BufferUsages::UNIFORM,
+        })
+    }
+}
+

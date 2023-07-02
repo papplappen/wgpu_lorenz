@@ -101,12 +101,14 @@ impl From<(&LorenzState, &Device)> for InstancesVec {
 }
 impl InstancesVec {
     pub fn update(&mut self, lorenz_state: &LorenzState, queue: &Queue) {
+        let color = color_from_hex(DEFAULT_COLOR).unwrap();
+
         self.data = lorenz_state
             .points
             .iter()
             .map(|pos| Instance {
                 position: *pos,
-                color: color_from_hex(DEFAULT_COLOR).unwrap(),
+                color,
             })
             .collect();
         self.raw = self.data.iter().map(|i| (*i).into()).collect();

@@ -39,7 +39,9 @@ impl RenderState {
         let vertex_buffer = Vertex::create_vertex_buffer(&env.device);
         let instances = InstancesVec::from((lorenz_state, &env.device));
 
-        // * CREATES RENDER PIPELINE
+        
+
+        // * CREATE RENDER PIPELINE
         let render_pipeline =
             Self::create_render_pipeline(&env.device, &env.config, &[&camera_bind_group_layout]);
         Self {
@@ -170,5 +172,10 @@ impl RenderState {
             view_formats: &[],
         });
         texture.create_view(&TextureViewDescriptor::default())
+    }
+    fn create_bind_group(device: &Device){
+        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor { label: Some("Render Bind Group Layout"), entries: &[
+            BindGroupLayoutEntry{}
+        ] });
     }
 }
