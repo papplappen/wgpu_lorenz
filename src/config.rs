@@ -15,7 +15,7 @@ pub struct Config {
     pub lorenz: LorenzConfig,
     pub num_lorenz_points: usize,
     pub num_workgroups: (u32, u32, u32),
-    pub smooth_shading: bool
+    pub smooth_shading: bool,
 }
 
 impl Default for Config {
@@ -29,7 +29,7 @@ impl Default for Config {
                 temp_num_workgroups,
                 temp_num_workgroups,
             ),
-            smooth_shading: SMOOTH_SHADING
+            smooth_shading: SMOOTH_SHADING,
         }
     }
 }
@@ -71,7 +71,7 @@ pub struct ConfigDrawShader {
 impl From<&Config> for ConfigDrawShader {
     fn from(cfg: &Config) -> Self {
         Self {
-            smooth_shading: cfg.smooth_shading as u32
+            smooth_shading: cfg.smooth_shading as u32,
         }
     }
 }
@@ -84,4 +84,3 @@ impl ConfigDrawShader {
         })
     }
 }
-

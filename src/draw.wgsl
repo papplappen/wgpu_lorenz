@@ -17,8 +17,15 @@ struct InstanceInput {
     @location(2) @align(16) color: vec3<f32>,
 }
 
+struct Config {
+    smooth_shading: u32,
+}
+
 @group(0) @binding(0)
 var<uniform> camera: CameraUniform;
+
+@group(1) @binding(0)
+var<uniform> config: Config;
 
 const POINT_RADIUS = 1.;
 const ASPECT_RATIO = 0.5625;
@@ -39,8 +46,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let radius_sq = dot(in.model_position, in.model_position);
     if radius_sq < 0.25 {
         let c = smoothstep(-1., 1., in.model_position.x + in.model_position.y);
-        return vec4<f32>(c, c, c, 1.) * in.color;
-        // return in.color;
+        if config.smooth_shading == 0u {
+            return vec4<f32>(c, c, c, 1.) * in.color;
+        } else {
+
+            return in.color;
+        }
     } else {
         discard;
     }

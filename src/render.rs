@@ -1,13 +1,15 @@
 use wgpu::{
-    include_wgsl, BindGroup, BindGroupLayout, Buffer, Color, ColorTargetState, ColorWrites,
-    CommandEncoderDescriptor, DepthBiasState, DepthStencilState, Device, Extent3d, FragmentState,
-    MultisampleState, Operations, PipelineLayoutDescriptor, PrimitiveState, PrimitiveTopology,
-    RenderPipeline, RenderPipelineDescriptor, StencilState, SurfaceConfiguration,
-    TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
-    TextureViewDescriptor, VertexState,
+    include_wgsl, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
+    BindGroupLayoutEntry, Buffer, Color, ColorTargetState, ColorWrites, CommandEncoderDescriptor,
+    DepthBiasState, DepthStencilState, Device, Extent3d, FragmentState, MultisampleState,
+    Operations, PipelineLayoutDescriptor, PrimitiveState, PrimitiveTopology, RenderPipeline,
+    RenderPipelineDescriptor, ShaderStages, StencilState, SurfaceConfiguration, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureUsages, TextureView, TextureViewDescriptor,
+    VertexState,
 };
 
 use crate::{
+    config::{Config, ConfigDrawShader},
     env::Environment,
     instance::{InstancesVec, RawInstance},
     lorenz::LorenzState,
@@ -25,12 +27,14 @@ pub struct RenderState {
     pub instances: InstancesVec,
     pub render_pipeline: RenderPipeline,
     pub depth_texture: TextureView,
+    pub config_bind_group: BindGroup,
 }
 impl RenderState {
     pub fn new(
         lorenz_state: &LorenzState,
         env: &Environment,
         camera_bind_group_layout: BindGroupLayout,
+        config: &Config,
     ) -> Self {
         // * CREATE DEPTH TEXTURE
         let depth_texture = Self::create_depth_texture(&env.device, &env.config);
@@ -39,16 +43,21 @@ impl RenderState {
         let vertex_buffer = Vertex::create_vertex_buffer(&env.device);
         let instances = InstancesVec::from((lorenz_state, &env.device));
 
-        
+        let (config_bind_group_layout, config_bind_group) =
+            Self::create_bind_group(config.into(), &env.device);
 
         // * CREATE RENDER PIPELINE
-        let render_pipeline =
-            Self::create_render_pipeline(&env.device, &env.config, &[&camera_bind_group_layout]);
+        let render_pipeline = Self::create_render_pipeline(
+            &env.device,
+            &env.config,
+            &[&camera_bind_group_layout, &config_bind_group_layout],
+        );
         Self {
             vertex_buffer,
             render_pipeline,
             depth_texture,
             instances,
+            config_bind_group,
         }
     }
 
@@ -90,6 +99,7 @@ impl RenderState {
             render_pass.set_pipeline(&self.render_pipeline);
 
             render_pass.set_bind_group(0, camera_bind_group, &[]);
+            render_pass.set_bind_group(1, &self.config_bind_group, &[]);
 
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 
@@ -173,9 +183,31 @@ impl RenderState {
         });
         texture.create_view(&TextureViewDescriptor::default())
     }
-    fn create_bind_group(device: &Device){
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor { label: Some("Render Bind Group Layout"), entries: &[
-            BindGroupLayoutEntry{}
-        ] });
+    fn create_bind_group(
+        config_draw_shader: ConfigDrawShader,
+        device: &Device,
+    ) -> (BindGroupLayout, BindGroup) {
+        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Render Bind Group Layout"),
+            entries: &[BindGroupLayoutEntry {
+                binding: 0,
+                visibility: ShaderStages::VERTEX_FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
+            label: Some("Render Bind Group"),
+            layout: &bind_group_layout,
+            entries: &[BindGroupEntry {
+                binding: 0,
+                resource: config_draw_shader.as_buffer(device).as_entire_binding(),
+            }],
+        });
+        (bind_group_layout, bind_group)
     }
 }

@@ -31,7 +31,7 @@ fn main() {
 
     let (camera, camera_bind_group_layout) = Camera::create_camera(&env.device, &env.config);
 
-    let render_state = RenderState::new(&lorenz_state, &env, camera_bind_group_layout);
+    let render_state = RenderState::new(&lorenz_state, &env, camera_bind_group_layout, &config);
 
     let compute_state = ComputeState::new(
         &env,
