@@ -46,3 +46,20 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     instances[i].pos = lorenz_step(config.lorenz, delta_time, instances[i].pos);
 }
+
+const VEL_SCALE = 0.01;
+const SLOW_COLOR = vec3<f32>(.66, .74, .89);
+const FAST_COLOR = vec3<f32>(.89, .44, .11);
+
+fn vel_to_color(vel: vec3<f32>) -> vec3<f32> {
+    
+    let mag = length(vel);
+    let value = VEL_SCALE * mag;
+    // return mix(SLOW_COLOR, FAST_COLOR, value);
+    return gradient(value);
+}
+
+fn gradient(value : f32) -> vec3<f32> {
+    let i = u32(saturate(value) * 33.);
+    return vec3<f32>(TEST[i]);
+}
