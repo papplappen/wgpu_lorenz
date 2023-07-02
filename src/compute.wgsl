@@ -60,15 +60,15 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 }
 
 const VEL_SCALE = 0.0025;
-const SLOW_COLOR = vec3<f32>(.4, .74, .89);
-const FAST_COLOR = vec3<f32>(.89, .44, .11);
+// const SLOW_COLOR = vec3<f32>(.4, .74, .89);
+// const FAST_COLOR = vec3<f32>(.89, .44, .11);
 
 fn vel_to_color(vel: vec3<f32>) -> vec3<f32> {
     
     let mag = length(vel);
     let value = VEL_SCALE * mag;
     // return mix(SLOW_COLOR, FAST_COLOR, value);
-    return textureSampleLevel(t_gradient, s_gradient, vec2<f32>(value,0.0), 0.0).rgb;
+    return textureSampleLevel(t_gradient, s_gradient, vec2<f32>(value, 0.0), 0.0).rgb;
 }
 
 // fn gradient(value : f32) -> vec3<f32> {

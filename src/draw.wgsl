@@ -38,8 +38,9 @@ fn vs_main(
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let radius_sq = dot(in.model_position, in.model_position);
     if radius_sq < 0.25 {
-        let c = smoothstep(-1., 1., in.model_position.x + in.model_position.y);
-        return vec4<f32>(c, c, c, 1.) * in.color;
+        // let c = smoothstep(-1., 1., in.model_position.x + in.model_position.y);
+        // return vec4<f32>(c, c, c, 1.) * in.color;
+        return in.color;
     } else {
         discard;
     }
