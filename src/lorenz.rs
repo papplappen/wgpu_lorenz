@@ -1,11 +1,5 @@
 use glam::Vec3;
 use rand::Rng;
-use wgpu::{
-    util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferUsages, Device,
-};
-
-use crate::compute::NUM_WORKGROUPS_PER_DIM;
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -13,6 +7,7 @@ pub struct LorenzConfig {
     pub rho: f32,
     pub sigma: f32,
     pub beta: f32,
+    pub step_size_factor: f32,
 }
 
 impl Default for LorenzConfig {
@@ -21,16 +16,13 @@ impl Default for LorenzConfig {
             rho: 28.,
             sigma: 10.,
             beta: 8. / 3.,
+            step_size_factor: 0.5,
         }
     }
 }
 
-pub const NUMBER_LORENZ_POINTS: usize = (NUM_WORKGROUPS_PER_DIM
-    * NUM_WORKGROUPS_PER_DIM
-    * NUM_WORKGROUPS_PER_DIM) as usize;
-pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 impl LorenzConfig {
-    fn delta(&self, state: Vec3) -> Vec3 {
+    fn _delta(&self, state: Vec3) -> Vec3 {
         let Vec3 { x, y, z } = state;
         Vec3 {
             x: self.sigma * (y - x),
@@ -39,44 +31,31 @@ impl LorenzConfig {
         }
     }
 
-    pub fn step(&self, dt: f32, state: Vec3) -> Vec3 {
-        state + dt * self.delta(state)
-    }
-    pub fn as_buffer(&self, device: &Device) -> Buffer {
-        device.create_buffer_init(&BufferInitDescriptor {
-            label: None,
-            contents: bytemuck::bytes_of(self),
-            usage: BufferUsages::UNIFORM,
-        })
+    pub fn _step(&self, dt: f32, state: Vec3) -> Vec3 {
+        state + self.step_size_factor * dt * self._delta(state)
     }
 }
 
 pub struct LorenzState {
-    pub lorenz_config: LorenzConfig,
     pub points: Vec<Vec3>,
-    pub paused: bool,
 }
 impl LorenzState {
-    pub fn new(lorenz_config: LorenzConfig) -> Self {
-        let points = (0..NUMBER_LORENZ_POINTS)
+    pub fn new(number_lorenz_points: usize) -> Self {
+        let points = (0..number_lorenz_points)
             .map(|_| {
-                const N : f32 = 50.;
-                    Vec3 {
+                const N: f32 = 50.;
+                Vec3 {
                     x: rand::thread_rng().gen_range(-N..N),
                     y: rand::thread_rng().gen_range(-N..N),
                     z: rand::thread_rng().gen_range(-N..N),
                 }
             })
             .collect();
-        Self {
-            lorenz_config,
-            points,
-            paused: true,
-        }
+        Self { points }
     }
-    pub fn update(&mut self, dt: f32) {
+    pub fn _update(&mut self, dt: f32, lorenz_config: LorenzConfig) {
         self.points
             .iter_mut()
-            .for_each(|p| *p = self.lorenz_config.step(dt, *p));
+            .for_each(|p| *p = lorenz_config._step(dt, *p));
     }
 }

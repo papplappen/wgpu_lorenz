@@ -3,12 +3,8 @@ use std::time::Instant;
 use winit::event_loop::EventLoop;
 
 use crate::{
-    camera::Camera,
-    compute::ComputeState,
-    env::Environment,
-    input,
-    lorenz::{LorenzState, DEFAULT_DELTA_TIME},
-    render::RenderState,
+    camera::Camera, compute::ComputeState, config::Config, env::Environment, input,
+    lorenz::LorenzState, render::RenderState,
 };
 use winit::{
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
@@ -20,13 +16,15 @@ pub struct State {
     pub lorenz_state: LorenzState,
     pub compute_state: ComputeState,
     pub camera: Camera,
+    pub config: Config,
+    pub delta_time: f32,
+    pub paused: bool,
 }
 
 impl State {
     pub fn run(mut self, event_loop: EventLoop<()>) {
         // * SETUP
         let mut start = Instant::now();
-        let mut delta = DEFAULT_DELTA_TIME;
         event_loop.run(move |event, _, control_flow| {
             match event {
                 Event::WindowEvent {
@@ -50,21 +48,25 @@ impl State {
                 },
                 Event::MainEventsCleared => {
                     // * UPDATE LORENZ
-                    if !self.lorenz_state.paused {
-                        self.update_lorenz(DEFAULT_DELTA_TIME)
+                    if !self.paused {
+                        self.update_lorenz()
                     }
                     // * UPDATE CAMERA
                     if self.env.cursor_grab {
-                        self.camera.update(delta);
-                        self.update_camera_buffer();
+                        self.camera.update(self.delta_time, &self.env.queue);
                     }
                     // * RENDER
-                    self.render_state
-                        .render_call(&self.env, &self.camera.bind_group);
+                    self.render_state.render_call(
+                        &self.env,
+                        &self.camera.bind_group,
+                        self.config.num_lorenz_points,
+                    );
                 }
                 Event::RedrawEventsCleared => {
-                    delta = start.elapsed().as_secs_f32();
-                    println!("{}", 1. / delta);
+                    self.delta_time = start.elapsed().as_secs_f32();
+                    self.compute_state
+                        .update_delta_time_buffer(self.delta_time, &self.env.queue);
+                    println!("{}", 1. / self.delta_time);
                     start = Instant::now();
                 }
 
@@ -79,15 +81,9 @@ impl State {
         })
     }
 
-    fn update_camera_buffer(&self) {
-        self.env.queue.write_buffer(
-            &self.camera.buffer,
-            0,
-            bytemuck::cast_slice(&[self.camera.uniform.view_proj]),
-        );
-    }
-    pub fn update_lorenz(&mut self, dt: f32) {
-        self.compute_state.compute_call(&self.env);
+    pub fn update_lorenz(&mut self) {
+        self.compute_state
+            .compute_call(&self.env, self.config.num_workgroups);
         // self.lorenz_state.update(dt);
         // self.render_state
         //     .instances

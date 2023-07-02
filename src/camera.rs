@@ -1,7 +1,7 @@
 use glam::{vec3, Mat3, Mat4, Vec3};
 use wgpu::{
     util::DeviceExt, BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer,
-    BufferUsages, Device, ShaderStages, SurfaceConfiguration,
+    BufferUsages, Device, Queue, ShaderStages, SurfaceConfiguration,
 };
 use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, WindowEvent};
 
@@ -75,10 +75,15 @@ impl Camera {
         )
     }
 
-    pub fn update(&mut self, delta: f32) {
+    pub fn update(&mut self, delta: f32, queue: &Queue) {
         self.controller
             .update_camera_entity(&mut self.entity, delta);
         self.uniform.update(&self.entity);
+        queue.write_buffer(
+            &self.buffer,
+            0,
+            bytemuck::cast_slice(&[self.uniform.view_proj]),
+        );
     }
 }
 #[derive(Debug)]

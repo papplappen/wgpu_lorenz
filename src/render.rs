@@ -1,16 +1,16 @@
 use wgpu::{
-    include_wgsl, BindGroup, BindGroupLayout, BlendState, Buffer, Color, ColorTargetState,
-    ColorWrites, CommandEncoderDescriptor, DepthBiasState, DepthStencilState, Device, Extent3d,
-    FragmentState, MultisampleState, Operations, PipelineLayoutDescriptor, PrimitiveState,
-    PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, StencilState,
-    SurfaceConfiguration, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-    TextureView, TextureViewDescriptor, VertexState,
+    include_wgsl, BindGroup, BindGroupLayout, Buffer, Color, ColorTargetState, ColorWrites,
+    CommandEncoderDescriptor, DepthBiasState, DepthStencilState, Device, Extent3d, FragmentState,
+    MultisampleState, Operations, PipelineLayoutDescriptor, PrimitiveState, PrimitiveTopology,
+    RenderPipeline, RenderPipelineDescriptor, StencilState, SurfaceConfiguration,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
+    TextureViewDescriptor, VertexState,
 };
 
 use crate::{
     env::Environment,
     instance::{InstancesVec, RawInstance},
-    lorenz::{LorenzState, NUMBER_LORENZ_POINTS},
+    lorenz::LorenzState,
     vertex::{Vertex, SQUARE},
 };
 
@@ -50,7 +50,12 @@ impl RenderState {
         }
     }
 
-    pub fn render_call(&self, env: &Environment, camera_bind_group: &BindGroup) {
+    pub fn render_call(
+        &self,
+        env: &Environment,
+        camera_bind_group: &BindGroup,
+        number_lorenz_points: usize,
+    ) {
         let output = env.surface.get_current_texture().unwrap();
         let mut encoder = env
             .device
@@ -88,7 +93,7 @@ impl RenderState {
 
             render_pass.set_vertex_buffer(1, self.instances.buffer.slice(..));
 
-            render_pass.draw(0..SQUARE.len() as u32, 0..NUMBER_LORENZ_POINTS as u32)
+            render_pass.draw(0..SQUARE.len() as u32, 0..number_lorenz_points as u32)
         }
         env.queue.submit(Some(encoder.finish()));
         output.present();
@@ -103,12 +108,12 @@ impl RenderState {
         let draw_shader = device.create_shader_module(include_wgsl!("draw.wgsl"));
 
         let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            label: None,
+            label: Some("Render Pipeline Layout"),
             bind_group_layouts,
             push_constant_ranges: &[],
         });
         device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: None,
+            label: Some("Render Pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: VertexState {
                 module: &draw_shader,
@@ -141,7 +146,7 @@ impl RenderState {
                 entry_point: "fs_main",
                 targets: &[Some(ColorTargetState {
                     format: config.format,
-                    blend: Some(BlendState::ALPHA_BLENDING),
+                    blend: None,
                     write_mask: ColorWrites::ALL,
                 })],
             }),

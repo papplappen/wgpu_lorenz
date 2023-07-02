@@ -13,8 +13,8 @@ struct CameraUniform {
 }
 
 struct InstanceInput {
-    @location(1) @size(16) pos: vec3<f32>,
-    @location(2) @size(16) color: vec3<f32>,
+    @location(1) @align(16) pos: vec3<f32>,
+    @location(2) @align(16) color: vec3<f32>,
 }
 
 @group(0) @binding(0)
@@ -29,7 +29,7 @@ fn vs_main(
 ) -> VertexOutput {
     let ppos = camera.view_proj * vec4<f32>(instance.pos, 1.0);
 
-    let pos = ppos + POINT_RADIUS * vec4<f32>(ASPECT_RATIO * model.position.x, model.position.y,0.,0.);
+    let pos = ppos + POINT_RADIUS * vec4<f32>(ASPECT_RATIO * model.position.x, model.position.y, 0., 0.);
 
     return VertexOutput(pos, model.position, vec4<f32>(instance.color, 1.0));
 }
