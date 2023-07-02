@@ -34,7 +34,7 @@ fn main() {
     let render_state = RenderState::new(&lorenz_state, &env, camera_bind_group_layout);
 
     let compute_state = ComputeState::new(
-        &env.device,
+        &env,
         &render_state.instances.buffer,
         &config,
         DEFAULT_DELTA_TIME,

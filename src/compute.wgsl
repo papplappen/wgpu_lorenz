@@ -23,6 +23,12 @@ var<uniform> config: Config;
 @group(0) @binding(2)
 var<uniform> delta_time: f32;
 
+
+@group(1) @binding(0)
+var t_gradient: texture_2d<f32>;
+@group(1) @binding(1)
+var s_gradient: sampler;
+
 fn lorenz_vel(lorenz_config: LorenzConfig, state: vec3<f32>) -> vec3<f32> {
     let x = state.x;
     let y = state.y;
@@ -53,16 +59,16 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     instances[i].color = vel_to_color(vel);
 }
 
-const VEL_SCALE = 0.0075;
-const SLOW_COLOR = vec3<f32>(.66, .74, .89);
+const VEL_SCALE = 0.0025;
+const SLOW_COLOR = vec3<f32>(.4, .74, .89);
 const FAST_COLOR = vec3<f32>(.89, .44, .11);
 
 fn vel_to_color(vel: vec3<f32>) -> vec3<f32> {
     
     let mag = length(vel);
     let value = VEL_SCALE * mag;
-    return mix(SLOW_COLOR, FAST_COLOR, value);
-    // return gradient(value);
+    // return mix(SLOW_COLOR, FAST_COLOR, value);
+    return textureSampleLevel(t_gradient, s_gradient, vec2<f32>(value,0.0), 0.0).rgb;
 }
 
 // fn gradient(value : f32) -> vec3<f32> {

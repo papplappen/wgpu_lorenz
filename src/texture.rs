@@ -2,7 +2,7 @@ use image::GenericImageView;
 use wgpu::{
     AddressMode, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, Device,
-    FilterMode, ImageCopyTexture, ImageDataLayout, Origin3d, Queue, SamplerBindingType,
+    Extent3d, FilterMode, ImageCopyTexture, ImageDataLayout, Origin3d, Queue, SamplerBindingType,
     SamplerDescriptor, ShaderStages, TextureAspect, TextureDescriptor, TextureDimension,
     TextureFormat, TextureSampleType, TextureUsages, TextureViewDimension,
 };
@@ -14,18 +14,17 @@ pub struct Texture {
 
 impl Texture {
     pub fn new(device: &Device, queue: &Queue, bytes: &[u8]) -> Self {
-        // let bytes = include_bytes!("../cloud.png");
-        let img = image::load_from_memory(bytes).unwrap();
-        let rgba = img.to_rgba8();
-        let (width, height) = img.dimensions();
+        let (image, width, height) = {
+            let image = image::load_from_memory(bytes).unwrap();
+            let (width, height) = image.dimensions();
+            (image.to_rgba8(), width, height)
+        };
 
-        let size = wgpu::Extent3d {
+        let size = Extent3d {
             width,
             height,
             depth_or_array_layers: 1,
         };
-
-        // let device: Device = todo!();
 
         let texture = device.create_texture(&TextureDescriptor {
             label: None,
@@ -38,8 +37,6 @@ impl Texture {
             view_formats: &[],
         });
 
-        // let queue: Queue = todo!();
-
         queue.write_texture(
             ImageCopyTexture {
                 texture: &texture,
@@ -47,7 +44,7 @@ impl Texture {
                 origin: Origin3d::ZERO,
                 aspect: TextureAspect::All,
             },
-            &rgba,
+            &image,
             ImageDataLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * width),
@@ -73,7 +70,7 @@ impl Texture {
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: ShaderStages::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT | ShaderStages::COMPUTE,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -83,7 +80,7 @@ impl Texture {
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: ShaderStages::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT | ShaderStages::COMPUTE,
                     ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },

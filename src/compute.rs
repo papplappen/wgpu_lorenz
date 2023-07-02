@@ -11,34 +11,44 @@ use wgpu::{
 use crate::{
     config::{Config, ConfigComputeShader},
     env::Environment,
+    texture::Texture,
 };
 
 pub struct ComputeState {
     compute_pipeline: ComputePipeline,
     bind_group: BindGroup,
     delta_time_buffer: Buffer,
+    gradient_texture: Texture,
 }
 
 impl ComputeState {
     pub fn new(
-        device: &Device,
+        env: &Environment,
         instance_buffer: &Buffer,
         config: &Config,
         delta_time: f32,
     ) -> Self {
-        let delta_time_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        let delta_time_buffer = env.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Delta Time Buffer"),
             contents: &delta_time.to_ne_bytes(),
             usage: BufferUsages::COPY_DST | BufferUsages::UNIFORM,
         });
         let (bind_group_layout, bind_group) =
-            Self::create_bind_group(device, instance_buffer, config, &delta_time_buffer);
-        let compute_pipeline = Self::create_compute_pipeline(device, &[&bind_group_layout]);
+            Self::create_bind_group(&env.device, instance_buffer, config, &delta_time_buffer);
+
+        let gradient_texture =
+            Texture::new(&env.device, &env.queue, include_bytes!("../gradient.png"));
+
+        let compute_pipeline = Self::create_compute_pipeline(
+            &env.device,
+            &[&bind_group_layout, &gradient_texture.bind_group_layout],
+        );
 
         Self {
             compute_pipeline,
             bind_group,
             delta_time_buffer,
+            gradient_texture,
         }
     }
 
@@ -145,6 +155,7 @@ impl ComputeState {
             let mut compute_pass = encoder.begin_compute_pass(&ComputePassDescriptor::default());
             compute_pass.set_pipeline(&self.compute_pipeline);
             compute_pass.set_bind_group(0, &self.bind_group, &[]);
+            compute_pass.set_bind_group(1, &self.gradient_texture.bind_group, &[]);
             compute_pass.dispatch_workgroups(num_workgroups.0, num_workgroups.1, num_workgroups.2);
         }
 

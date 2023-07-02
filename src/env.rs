@@ -46,7 +46,7 @@ impl Environment {
             })
             .await
             .unwrap();
-        dbg!(adapter.limits());
+        // dbg!(adapter.limits());
         // * CREATE DEVICE & QUEUE
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default(), None)
