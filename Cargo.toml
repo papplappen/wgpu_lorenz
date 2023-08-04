@@ -11,7 +11,7 @@ glam = "0.24"
 image = { version = "0.24.6", default-features = false, features = ["png"] }
 pollster = "0.3"
 rand = "0.8.5"
-wgpu = "0.16"
+wgpu = "0.17"
 winit = "0.28"
 
 # Enable a small amount of optimization in debug mode
